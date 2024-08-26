@@ -38,6 +38,7 @@
     </remote_servers>
     <zookeeper>
         <prefer_local_availability_zone>1</prefer_local_availability_zone>
+
         <zookeeper_load_balancing>random</zookeeper_load_balancing>
         <fallback_session_lifetime>
             <min>0</min>
@@ -68,5 +69,6 @@
     <placement>
         <use_imds>0</use_imds>
         <availability_zone>az1</availability_zone>
+
     </placement>
 </clickhouse>

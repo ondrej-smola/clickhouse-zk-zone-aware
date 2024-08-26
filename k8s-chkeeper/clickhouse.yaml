@@ -1,0 +1,86 @@
+---
+apiVersion: clickhouse.altinity.com/v1
+kind: ClickHouseInstallation
+metadata:
+  name: keeper-az-test
+spec:
+  defaults:
+    storageManagement:
+      provisioner: Operator
+    templates:
+      podTemplate: pod-template
+      dataVolumeClaimTemplate: data-volume-template
+      logVolumeClaimTemplate: ""
+      serviceTemplate: svc-template
+  configuration:
+    users:
+      admin/password: "letmeinplease"
+      admin/networks/ip: "::/0"
+    zookeeper:
+      nodes:
+        - host: clickhouse-keeper-0.clickhouse-keepers
+          port: 2181
+        - host: clickhouse-keeper-1.clickhouse-keepers
+          port: 2181
+        - host: clickhouse-keeper-2.clickhouse-keepers
+          port: 2181
+    clusters:
+      - name: "chi"
+        layout:
+          replicasCount: 3
+    settings:
+      disable_internal_dns_cache: 1
+      zookeeper/prefer_local_availability_zone: 1
+      zookeeper/availability_zone_autodetect: 1
+      zookeeper/zookeeper_load_balancing: random
+      zookeeper/fallback_session_lifetime/min: 0
+      zookeeper/fallback_session_lifetime/max: 5
+      placement/use_imds: 1
+  templates:
+    volumeClaimTemplates:
+      - name: data-volume-template
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+    podTemplates:
+      - name: pod-template
+        metadata:
+          annotations:
+            prometheus.io/scrape: 'true'
+            prometheus.io/port: '8888'
+            prometheus.io/path: '/metrics'
+            # need separate prometheus scrape config, look to https://github.com/prometheus/prometheus/issues/3756
+            clickhouse.backup/scrape: 'true'
+            clickhouse.backup/port: '7171'
+            clickhouse.backup/path: '/metrics'
+        podDistribution:
+          - type: ClickHouseAntiAffinity
+            topologyKey: topology.kubernetes.io/zone
+        spec:
+          securityContext:
+            runAsUser: 101
+            runAsGroup: 101
+            fsGroup: 101
+          containers:
+            - name: clickhouse
+              image: "clickhouse/clickhouse-server:24.7.4.51-alpine"
+              command:
+                - clickhouse-server
+                - --config-file=/etc/clickhouse-server/config.xml
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 2Gi
+    serviceTemplates:
+      - name: svc-template
+        generateName: "clickhouse-svc-{chi}"
+        spec:
+          ports:
+            - name: http
+              port: 8123
+            - name: tcp
+              port: 9000
+          type: ClusterIP

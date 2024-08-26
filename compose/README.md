@@ -16,3 +16,5 @@ sleep 5
 docker compose exec clickhouse-02 clickhouse-client --query "select host, availability_zone from system.zookeeper_connection"
 # should print clickhouse-keeper-03 az3 again
 ```
+
+
