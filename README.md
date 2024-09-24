@@ -3,7 +3,7 @@
 
 1. [Clickhouse >= 24.7 and ClickHouseKeeper](#clickhouse--247-and-clickhousekeeper)
 1. [Clickhouse >= 24.7 and Zookeeper](#clickhouse--247-and-zookeeper)
-1. [Fallback](#clickhouse--247-and-zookeeper)
+1. [Fallback](#fallback)
 
 
 ### ClickHouse >= 24.7 and ClickHouseKeeper
